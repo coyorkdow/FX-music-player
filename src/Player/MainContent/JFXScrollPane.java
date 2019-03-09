@@ -1,4 +1,5 @@
-package Player.MainContent;
+
+// This file originated from the source code of JFoenix and had modified.
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -18,6 +19,10 @@ package Player.MainContent;
  * specific language governing permissions and limitations
  * under the License.
  */
+
+
+package Player.MainContent;
+
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;

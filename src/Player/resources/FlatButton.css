@@ -1,0 +1,43 @@
+.button {
+    /* -fx-pref-width: 46px;
+    -fx-pref-height: 38px; */
+    -fx-background-color: TRANSPARENT;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0px;
+    -fx-text-fill: #272927;
+}
+.button:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.1);
+}
+.button:pressed {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+}
+
+.button .text {
+    /* -fx-font-family: "Microsoft YaHei"; */
+    -fx-font-weight: lighter;
+    -fx-font-size: 14px;
+}
+
+.textbtn.button {
+    /*-fx-pref-width: 276px;*/
+}
+
+.search.button {
+    -fx-background-color: rgba(255, 255, 255, 0.6);
+    -fx-background-image: url("baseline_search_black_small.png");
+    -fx-background-position: center center;
+    -fx-background-repeat:no-repeat;
+}
+.search.button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.6);
+    -fx-background-image: url("baseline_search_black_small_hover.png");
+    -fx-background-position: center center;
+    -fx-background-repeat:no-repeat;
+}
+.search.button:pressed {
+    -fx-background-image: url("baseline_search_black_small.png");
+    -fx-background-position: center center;
+    -fx-background-color: rgba(255, 255, 255, 0.6);
+    -fx-background-repeat:no-repeat;
+}

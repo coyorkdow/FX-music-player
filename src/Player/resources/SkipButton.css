@@ -1,0 +1,15 @@
+.button {
+    -fx-background-color: TRANSPARENT;
+    -fx-background-radius: 50%;
+    -fx-background-insets: 0px;
+    -fx-pref-width: 50px;
+    -fx-pref-height: 50px;
+    -fx-fill: TRANSPARENT;
+    -fx-stroke: #6F727B;
+    -fx-stroke-width: 1px;
+    /* -fx-border-style: solid inside;
+    -fx-border-width: 1px;
+    -fx-border-insets: 0;
+    -fx-border-radius: 50%;
+    -fx-border-color: #6F727B; */
+}

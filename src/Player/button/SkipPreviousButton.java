@@ -1,0 +1,29 @@
+package Player.button;
+
+import Player.Main;
+import javafx.scene.control.Button;
+import javafx.scene.image.ImageView;
+
+public class SkipPreviousButton extends Button {
+    final private ImageView icon = new ImageView(Main.class.getResource("resources/outline_skip_previous_white_18dp.png").toString());
+    final private ImageView iconHover = new ImageView(Main.class.getResource("resources/outline_skip_previous_white_18dp_hover.png").toString());
+
+    public SkipPreviousButton() {
+        setGraphic(icon);
+        getStylesheets().add(Main.class.getResource("resources/SkipButton.css").toExternalForm());
+        setOnMouseEntered(mouseEvent -> setGraphic(iconHover));
+        setOnMouseExited(mouseEvent -> setGraphic(icon));
+//        setOnMouseEntered(new EventHandler<MouseEvent>() {
+//            @Override
+//            public void handle(MouseEvent mouseEvent) {
+//                setGraphic(iconHover);
+//            }
+//        });
+//        setOnMouseExited(new EventHandler<MouseEvent>() {
+//            @Override
+//            public void handle(MouseEvent mouseEvent) {
+//                setGraphic(icon);
+//            }
+//        });
+    }
+}

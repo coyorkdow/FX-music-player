@@ -7,6 +7,9 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 public class InfoPane extends GridPane {
 
     HBox titleBox;
@@ -14,13 +17,14 @@ public class InfoPane extends GridPane {
     Label artist;
     Label album;
     Label time;
+    private ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
 
     public InfoPane() {
         titleBox = new HBox();
-        artist = new Label("wmr");
-        album = new Label("wmr");
-        time = new Label("wmr");
-        title = new Label("wmr");
+        artist = new Label(LOC.getString("UnknownArtist"));
+        album = new Label(LOC.getString("UnknownAlbum"));
+        time = new Label();
+        title = new Label(LOC.getString("UnknownTitle"));
 
         titleBox.setPadding(new Insets(0, 2, 0, 0));
         artist.setPadding(new Insets(0, 2, 0, 0));

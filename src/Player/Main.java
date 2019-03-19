@@ -1,5 +1,7 @@
 package Player;
 
+import Player.MainContent.CurPlayPage;
+import Player.MainContent.JFXScrollPane;
 import Player.MainContent.PlayListPage;
 import Player.button.*;
 import com.jfoenix.controls.JFXDialog;
@@ -41,15 +43,14 @@ public class Main extends Application {
 
     private double xOffset = 0;
     private double yOffset = 0;
-    private boolean mediaLoaded;
-    private boolean mediaPlaying;
+    private boolean mediaLoaded = false;
+    private boolean mediaPlaying = false;
 
     private Stage stage;
 
-    private Image defaultCover = new Image(Main.class.getResource("resources/default-cover-art.png").toExternalForm());
+    private Image defaultCover = scale(new Image(Main.class.getResource("resources/default-cover-art.png").toExternalForm()),
+            95, 95, false);
     private ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
-
-    BorderPane root;
 
     private PlayPane playPane;
     private PlayButton playButton, pauseButton;
@@ -69,9 +70,12 @@ public class Main extends Application {
     private Label musicImage, musicTitle, musicArtist, musicAlbum;
 
     private StackPane mainContent;
+    private JFXScrollPane playListPage;
+    private CurPlayPage curPlayPage;
 
     private InvalidationListener sliderChangeListener =
             o -> mediaPlayer.seek(Duration.seconds(slider.getValue()));
+
 
     private ChangeListener<Duration> playerListener =
             (observableValue, duration, t1) -> {
@@ -115,8 +119,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
         this.stage = stage;
-        mediaLoaded = false;
-        mediaPlaying = false;
+
         media = null;
         timeTransfer = new Text();
         mediaURLTransFer = new Text();
@@ -142,9 +145,12 @@ public class Main extends Application {
 
         BorderPane.setAlignment(playPane, Pos.BOTTOM_CENTER);
 
-        mainContent = new StackPane(new PlayListPage());
+        playListPage = new PlayListPage();
+        curPlayPage = new CurPlayPage();
 
-        root = new BorderPane();
+        mainContent = new StackPane(playListPage);
+
+        BorderPane root = new BorderPane();
         root.setTop(titleBar);
         root.setLeft(leftView);
         root.setCenter(mainContent);
@@ -182,7 +188,7 @@ public class Main extends Application {
         stage.setMinHeight(undecorator.getPrefHeight());
 
         titleBar.setOnMouseClicked((mouseEvent -> {
-            if(mouseEvent.getButton().toString().equals("SECONDARY")) {
+            if (mouseEvent.getButton().toString().equals("SECONDARY")) {
                 if (undecorator.contextMenu.isShowing()) {
                     undecorator.contextMenu.hide();
                 } else {
@@ -242,7 +248,6 @@ public class Main extends Application {
         timeTot.setStyle("-fx-text-fill: #c6ccdd;" +
                 "-fx-background-color: TRANSPARENT;");
 
-
         PlayPane.setHalignment(timeCur, HPos.CENTER);
         PlayPane.setHalignment(timeTot, HPos.CENTER);
         PlayPane.setConstraints(timeCur, 1, 1);
@@ -277,13 +282,11 @@ public class Main extends Application {
                 "-fx-pref-height: 30px;" +
                 "-fx-font-size: 14px;");
         musicImage.setStyle("-fx-background-color: TRANSPARENT;");
-        musicImage.setGraphic(new ImageView(defaultCover));
+//        musicImage.setGraphic(new ImageView(defaultCover));
         musicImage.setMinSize(95, 95);
         PlayPane.setConstraints(metaDataBox, 0, 0);
         PlayPane.setRowSpan(metaDataBox, 2);
         playPane.getChildren().add(metaDataBox);
-
-
     }
 
     private void setSoundPane() {
@@ -336,10 +339,11 @@ public class Main extends Application {
                 openFile(file);
         });
 
+        leftView.curPlayButton.setOnAction(actionEvent -> mainContent.getChildren().setAll(curPlayPage));
+
         leftView.playListButton.setOnAction(actionEvent -> {
-            //        TreeView<File> leftView = new TreeView<>(
-//                new TreeFileItem(new File("C:\\")));
-//            root.setCenter(new TreeView<>(new TreeFileItem(new File("C:/"))));
+            mainContent.getChildren().setAll(playListPage);
+//            titleBar.setDark();
         });
     }
 
@@ -365,11 +369,12 @@ public class Main extends Application {
                 mediaLoaded = false;
             }
             media = new Media(file.toURI().toURL().toExternalForm());
-            mediaURLTransFer.setText(file.toURI().toURL().toExternalForm());
+            mediaURLTransFer.setText(file.toString());
             musicImage.setGraphic(new ImageView(defaultCover));
-            musicArtist.setText("");
-            musicTitle.setText("");
-            musicAlbum.setText("");
+            musicAlbum.setText(LOC.getString("UnknownAlbum"));
+            musicArtist.setText(LOC.getString("UnknownArtist"));
+            String[] s = file.toString().split("\\\\");
+            musicTitle.setText(s[s.length - 1].split("\\.")[0]);
 
             media = new Media(file.toURI().toURL().toExternalForm());
             mediaPlayer = new MediaPlayer(media);
@@ -377,6 +382,7 @@ public class Main extends Application {
 //            mediaView = new MediaView(mediaPlayer);
 //            root.setCenter(mediaView);
             mediaLoaded = true;
+            curPlayPage.setMedia(mediaPlayer);
             switchPauseToPlay();
 
             try {
@@ -389,6 +395,7 @@ public class Main extends Application {
                 mediaPlayer.volumeProperty().unbind();
                 media.getMetadata().removeListener(musicMetaDataListener);
             } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
 
             try {
@@ -404,6 +411,7 @@ public class Main extends Application {
                         }, slider.valueProperty())
                 );
             } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
 
             slider.valueProperty().addListener(sliderChangeListener);
@@ -411,11 +419,12 @@ public class Main extends Application {
             slider.valueChangingProperty().addListener(sliderValueChangingListener);
 
             mediaPlayer.volumeProperty().bind(volumeBind);
+            mediaPlayer.setOnEndOfMedia(() -> curPlayPage.stop());
 
             media.getMetadata().addListener(musicMetaDataListener);
 
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 
@@ -430,7 +439,8 @@ public class Main extends Application {
             mediaPlaying = true;
         }
         if (mediaLoaded)
-            mediaPlayer.play();
+            curPlayPage.start();
+        mediaPlayer.play();
     }
 
     private void switchPlayToPause() {
@@ -443,8 +453,10 @@ public class Main extends Application {
             playPane.getChildren().add(slider);
             mediaPlaying = false;
         }
-        if (mediaLoaded)
+        if (mediaLoaded) {
             mediaPlayer.pause();
+//            curPlayPage.stop();
+        }
     }
 
     private void handleMetaData(String key, Object value) {

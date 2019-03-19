@@ -7,17 +7,20 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 
 public class PlayListPage extends JFXScrollPane {
 
     private Label title;
     private StackPane content;
-    Map<String, InfoPane> inListMediaRecord = new HashMap<>();
-
+    Map<String, InfoPane> inListMediaRecord;
+    private ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
 
     public PlayListPage() {
+        this.inListMediaRecord = new HashMap<>();
         header.maxWidthProperty().bind(Bindings.createDoubleBinding(
                 () -> getWidth() * 0.9, widthProperty()));
         header.minWidthProperty().bind(Bindings.createDoubleBinding(
@@ -33,6 +36,8 @@ public class PlayListPage extends JFXScrollPane {
             list.edit(0);
             if (inListMediaRecord.containsKey(Main.mediaURLTransFer.getText()))
                 list.getItems().remove(inListMediaRecord.get(Main.mediaURLTransFer.getText()));
+            String[] s = Main.mediaURLTransFer.getText().split("\\\\");
+            infoPane.title.setText(s[s.length - 1].split("\\.")[0]);
             inListMediaRecord.put(Main.mediaURLTransFer.getText(), infoPane);
         });
         Main.timeTransfer.textProperty().addListener((observable, old, newer) -> {
@@ -63,7 +68,7 @@ public class PlayListPage extends JFXScrollPane {
             }
         });
 
-        title = new Label("播放列表");
+        title = new Label(LOC.getString("PlayList"));
         title.setStyle("-fx-text-fill: #4D4D4D;" +
                         "-fx-background-color: TRANSPARENT;" +
                         "-fx-font-size: 24px;"

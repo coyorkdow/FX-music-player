@@ -12,5 +12,6 @@ class TitleBar extends HBox {
         setPrefHeight(30);
         setMaxHeight(30);
         getChildren().add(leftColour);
+//        setStyle("-fx-background-color:black;");
     }
 }

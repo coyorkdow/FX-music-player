@@ -1,0 +1,27 @@
+.chart{
+    -fx-background-color: transparent;
+    -fx-padding: 0px;
+}
+.chart-content{
+    -fx-padding: 0px;
+}
+.chart-plot-background {
+     -fx-background-color: black;
+ }
+.axis {
+    -fx-tick-mark-visible: false;
+    -fx-minor-tick-visible: false;
+    -fx-minor-tick-length: 0;
+    -fx-background-color: blue;
+    -fx-pref-height: 0px;
+    -fx-pref-width: 0px;
+}
+.axis-label {
+    -fx-text-fill: transparent;
+}
+.default-color0.chart-bar {
+
+}
+.default-color1.chart-bar {
+
+}

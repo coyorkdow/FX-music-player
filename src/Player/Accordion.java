@@ -2,9 +2,14 @@ package Player;
 
 import Player.button.FlatButton;
 import com.jfoenix.controls.JFXTextField;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.util.Duration;
 
 
 import java.util.Locale;
@@ -16,11 +21,11 @@ class Accordion extends HBox {
     private boolean fold;
     FlatButton btn, searchBtn, curPlayButton, playListButton, addMusicButton;
     FlatButton search;
-    VBox buttonBox;
-    VBox popBox;
+    private VBox buttonBox;
+    private VBox popBox;
     JFXTextField searchField;
 
-    Accordion() {
+    Accordion(Main main) {
 
         ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
 
@@ -40,6 +45,7 @@ class Accordion extends HBox {
         Region dummy = new Region();
         dummy.setMinWidth(46 * 6);
         dummy.setMaxWidth(46 * 6);
+//        dummy.setPrefHeight(46 * 6);
         dummy.setMinHeight(38);
         dummy.setMaxHeight(38);
         popBox.getChildren().add(dummy);
@@ -60,6 +66,7 @@ class Accordion extends HBox {
         colum3.setPercentWidth(17);
         searchBox.getColumnConstraints().addAll(colum1, colum2, colum3);
         Region dummyField = new Region();
+        dummyField.setMaxHeight(38);
         dummyField.setStyle("-fx-background-color: rgba(255, 255, 255, 0.6);");
         searchBox.add(dummyField, 0, 0);
         searchBox.add(searchField, 1, 0);
@@ -73,25 +80,50 @@ class Accordion extends HBox {
         popBox.getChildren().add(searchBox);
 
         searchBtn.setOnAction(actionEvent -> {
-            if(!fold){
+            if (!fold) {
                 fold = true;
-                getChildren().add(popBox);
+                Duration cycleDuration = Duration.millis(100);
+                Timeline timeline = new Timeline(
+                        new KeyFrame(cycleDuration, new KeyValue(prefWidthProperty(),
+                                getWidth() + 46 * 6, Interpolator.EASE_BOTH))
+                );
+                timeline.play();
+                timeline.setOnFinished(actionEvent1 -> {
+                    getChildren().add(popBox);
+                    main.setLeftView(true);
+                });
             }
         });
 
         btn.setOnAction(actionEvent -> {
             if (!fold) {
                 fold = true;
-//                search.setMaxHeight(searchField.getHeight());
-//                search.setMinHeight(searchField.getHeight());
-                getChildren().add(popBox);
+                Duration cycleDuration = Duration.millis(100);
+                Timeline timeline = new Timeline(
+                        new KeyFrame(cycleDuration, new KeyValue(prefWidthProperty(),
+                                getWidth() + 46 * 6, Interpolator.EASE_BOTH))
+                );
+                timeline.play();
+                timeline.setOnFinished(actionEvent1 -> {
+                    getChildren().add(popBox);
+                    main.setLeftView(true);
+                });
             } else {
                 fold = false;
                 getChildren().remove(popBox);
-//                setMinWidth(getPrefWidth());
-//                setMaxWidth(getPrefWidth());
+                Duration cycleDuration = Duration.millis(100);
+                Timeline timeline = new Timeline(
+                        new KeyFrame(cycleDuration, new KeyValue(prefWidthProperty(),
+                                getWidth() - 46 * 6, Interpolator.EASE_BOTH))
+                );
+                timeline.play();
+                timeline.setOnFinished(actionEvent1 -> {
+                    main.setLeftView(false);
+                });
             }
         });
+
+
         setStyle(" -fx-background-color: linear-gradient(to bottom, #e6dfda, #94918b);");
 //        heightProperty().addListener((observableValue, number, t1) -> {
 //            if(getHeight() < 10 * getPrefWidth())

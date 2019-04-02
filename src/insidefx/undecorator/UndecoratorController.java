@@ -38,7 +38,7 @@ public class UndecoratorController {
     static boolean isMacOS = false;
     static final int MAXIMIZE_BORDER = 20;  // Allow double click to maximize on top of the Scene
 
-    {
+    static {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("mac") != -1) {
             isMacOS = true;

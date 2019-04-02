@@ -1,17 +1,15 @@
 package Player.MainContent;
 
 import Player.Main;
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.layout.StackPane;
-import javafx.scene.media.AudioSpectrumListener;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 
 public class CurPlayPage extends StackPane {
 
@@ -22,9 +20,10 @@ public class CurPlayPage extends StackPane {
     ColorChooser[] colorChooser = new ColorChooser[32];
 
     public CurPlayPage() {
-//        Media media = new Media(this.getClass().getResource("fripSide-only my railgun.mp3").toExternalForm());
-//        audioMediaPlayer = new MediaPlayer(media);
-//        audioMediaPlayer.setAudioSpectrumNumBands(32);
+        Rectangle clip = new Rectangle();
+        this.setClip(clip);
+        clip.widthProperty().bind(this.widthProperty());
+        clip.heightProperty().bind(this.heightProperty());
 
         final CategoryAxis xAxis = new CategoryAxis();
         final NumberAxis yAxis = new NumberAxis(0, 50, 0);
@@ -44,7 +43,7 @@ public class CurPlayPage extends StackPane {
         yAxis.setTickLabelFill(Color.TRANSPARENT);
 
         XYChart.Series<String, Number> series1 = new XYChart.Series<>();
-        series1.setName("Series Neg");
+//        series1.setName("Series Neg");
         seriesData = new XYChart.Data[32];
 
         for (int i = 0; i < seriesData.length; i++) {
@@ -54,10 +53,11 @@ public class CurPlayPage extends StackPane {
         bc.getData().add(series1);
         bc.getStylesheets().add(Main.class.getResource("resources/CurPlayPage.css").toExternalForm());
         this.getChildren().add(bc);
+//        setMouseTransparent(true);
         stop();
     }
 
-    public void setMedia(MediaPlayer mediaPlayer){
+    public void setMedia(MediaPlayer mediaPlayer) {
         audioMediaPlayer = mediaPlayer;
         int rand = (int) (Math.random() * 100);
         for (int i = 0; i < colorChooser.length; i++)
@@ -85,6 +85,7 @@ public class CurPlayPage extends StackPane {
                 }
             });
         } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 

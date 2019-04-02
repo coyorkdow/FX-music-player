@@ -27,6 +27,7 @@
  */
 package insidefx.undecorator;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
@@ -564,12 +565,22 @@ public class Undecorator extends StackPane {
     public void initDecoration() {
         MenuItem minimizeMenuItem = null;
         // Menu
+//        openMenu = new ContextMenu();
+//        openMenu.setAutoHide(true);
+//        MenuItem openFileItem = new MenuItem(LOC.getString("OpenFile"));
+//        openFileItem.setOnAction(actionEvent -> {
+//            System.out.println("ttttt");
+////            File file = fileChooser.showOpenDialog(stage);
+////            if (file != null)
+////                openFile(file);
+//        });
+//        openFileItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN));
+
 //        final ContextMenu contextMenu = new ContextMenu();
         contextMenu.setAutoHide(true);
         if (minimize != null) { // Utility Stage
             minimizeMenuItem = new MenuItem(LOC.getString("Minimize"));
             minimizeMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.M, KeyCombination.SHORTCUT_DOWN));
-
             minimizeMenuItem.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent e) {

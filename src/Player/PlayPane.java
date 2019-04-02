@@ -2,9 +2,16 @@ package Player;
 
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.shape.Rectangle;
 
 class PlayPane extends GridPane {
     PlayPane() {
+
+        Rectangle clip = new Rectangle();
+        this.setClip(clip);
+        clip.widthProperty().bind(this.widthProperty());
+        clip.heightProperty().bind(this.heightProperty());
+
         ColumnConstraints column1 = new ColumnConstraints();
         column1.setPercentWidth(30);
         getColumnConstraints().add(0, column1);

@@ -1,7 +1,6 @@
 package Player;
 
 import Player.MainContent.CurPlayPage;
-import Player.MainContent.JFXScrollPane;
 import Player.MainContent.PlayListPage;
 import Player.button.*;
 import com.jfoenix.controls.JFXDialog;
@@ -17,14 +16,21 @@ import javafx.collections.MapChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -37,9 +43,11 @@ import java.util.ResourceBundle;
 
 public class Main extends Application {
 
+    //    It is used to transfer information to the PlayListPage.
     static public HBox metaDataTransfer;
     static public Text timeTransfer;
-    static public Text mediaURLTransFer;
+    static public Text mediaPathTransFer;
+    private boolean transfer = true;
 
     private double xOffset = 0;
     private double yOffset = 0;
@@ -61,22 +69,28 @@ public class Main extends Application {
     private SkipNextButton skipNext;
     private TitleBar titleBar;
 
-    Accordion leftView;
+    private Undecorator undecorator;
+
+    private Accordion leftView;
+
+    private Region rect;
 
     private Media media;
-    //    private MediaView mediaView;
     private MediaPlayer mediaPlayer;
     private Label timeCur, timeTot;
     private Label musicImage, musicTitle, musicArtist, musicAlbum;
 
     private StackPane mainContent;
-    private JFXScrollPane playListPage;
+    private PlayListPage playListPage;
     private CurPlayPage curPlayPage;
 
+    //    Listener of time slider's value (valueProperty). Set mediaPlayer's current time as the value of the slider.
     private InvalidationListener sliderChangeListener =
             o -> mediaPlayer.seek(Duration.seconds(slider.getValue()));
 
-
+    //    Listener of current time of mediaPlayer (currentTimeProperty). Ones called, remove sliderChangeListener
+//    firstly, then set time slider's value as the current time, set current time text. Lastly, re-add
+//    sliderChangeListener to time slider.
     private ChangeListener<Duration> playerListener =
             (observableValue, duration, t1) -> {
                 slider.valueProperty().removeListener(sliderChangeListener);
@@ -87,6 +101,8 @@ public class Main extends Application {
                         new DecimalFormat("00").format(time % 60));
             };
 
+    //    Another listener of time slider's value (valueProperty). It only works while dragging slider. While user is
+//    dragging time slider, current time text shall be changed but mediaPlayer would not be effected.
     private ChangeListener<Duration> sliderDraggingPlayerListener =
             (observableValue, duration, t1) -> {
                 int time = (int) (slider.getValue() + 0.5);
@@ -94,7 +110,8 @@ public class Main extends Application {
                         new DecimalFormat("00").format(time % 60));
             };
 
-    //    The property is true when the user is dragging the thumb and false once they release it.
+    //    Listener of time slider's value changing (valueChangingProperty).The property is true when the user is
+//    dragging the thumb and false once they release it.
     private ChangeListener<Boolean> sliderValueChangingListener =
             (observableValue, aBoolean, t1) -> {
                 if (t1) {
@@ -111,6 +128,7 @@ public class Main extends Application {
 
     private DoubleBinding volumeBind;
 
+    //    Listener of music meta data, it will try to get the media's title, artist, album and image cover.
     private MapChangeListener<String, Object> musicMetaDataListener = (c) -> {
         if (c.wasAdded())
             handleMetaData(c.getKey(), c.getValueAdded());
@@ -122,7 +140,7 @@ public class Main extends Application {
 
         media = null;
         timeTransfer = new Text();
-        mediaURLTransFer = new Text();
+        mediaPathTransFer = new Text();
         metaDataTransfer = new HBox();
         metaDataTransfer.getChildren().addAll(new Label(), new Label());
         metaDataTransfer.setPrefSize(1, 1);
@@ -133,30 +151,35 @@ public class Main extends Application {
         musicImage = new Label();
 
         titleBar = new TitleBar();
-        leftView = new Accordion();
+        leftView = new Accordion(this);
 
         setPlayPane();
         setSoundPane();
 
+//        Transfer total time of media to the PlayListPage. PlayListPage is listening the timeTransfer's textProperty.
         timeTransfer.textProperty().bind(timeTot.textProperty());
 
-        titleBar.leftColour.setMaxWidth(leftView.getWidth());
-        titleBar.leftColour.setMinWidth(leftView.getWidth());
+        titleBar.leftColour.minWidthProperty().bind(leftView.prefWidthProperty());
 
         BorderPane.setAlignment(playPane, Pos.BOTTOM_CENTER);
 
-        playListPage = new PlayListPage();
+        mainContent = new StackPane();
+        playListPage = new PlayListPage(this);
         curPlayPage = new CurPlayPage();
 
-        mainContent = new StackPane(playListPage);
+        mainContent.getChildren().add(playListPage);
 
         BorderPane root = new BorderPane();
         root.setTop(titleBar);
         root.setLeft(leftView);
         root.setCenter(mainContent);
         root.setBottom(playPane);
-        root.setRight(new Label());
+
+        rect = new Region();
+        rect.setPrefWidth(1);
+        root.setRight(rect);
         root.setPrefSize(650, 300);
+
         // Set the Style-properties of the BorderPane
         root.setStyle("-fx-padding: 0;");
 
@@ -166,7 +189,7 @@ public class Main extends Application {
         });
         //move around here
         titleBar.setOnMouseDragged(mouseEvent -> {
-            if (!mouseEvent.isPrimaryButtonDown())
+            if (!mouseEvent.isPrimaryButtonDown() || stage.isFullScreen())
                 return;
             stage.setX(mouseEvent.getScreenX() - xOffset);
             stage.setY(mouseEvent.getScreenY() - yOffset);
@@ -183,7 +206,7 @@ public class Main extends Application {
         stage.toFront();
 
         // Set minimum size based on client area's minimum sizes
-        Undecorator undecorator = undecoratorScene.getUndecorator();
+        undecorator = undecoratorScene.getUndecorator();
         stage.setMinWidth(undecorator.getPrefWidth());
         stage.setMinHeight(undecorator.getPrefHeight());
 
@@ -204,20 +227,7 @@ public class Main extends Application {
 
         leftView.setPrefWidth(leftView.getWidth());
         leftView.setPrefHeight(leftView.getHeight());
-        titleBar.leftColour.setMaxWidth(leftView.getWidth());
-        titleBar.leftColour.setMinWidth(leftView.getWidth());
 
-        leftView.widthProperty().addListener((observableValue, number, t1) -> {
-            titleBar.leftColour.setMaxWidth(leftView.getWidth());
-            titleBar.leftColour.setMinWidth(leftView.getWidth());
-            if (leftView.getWidth() == leftView.getPrefWidth()) {
-                undecorator.setTitle("");
-                leftView.searchBtn.setOpacity(1);
-            } else {
-                undecorator.setTitle("FX Music Player");
-                leftView.searchBtn.setOpacity(0);
-            }
-        });
         setButtonAction();
     }
 
@@ -294,7 +304,7 @@ public class Main extends Application {
         soundVolumeSlider = new SoundSlider(0, 100, 50);
         volumeBind = Bindings.createDoubleBinding(
                 () -> soundVolumeSlider.getValue() / 100, soundVolumeSlider.valueProperty());
-        soundButton = new SoundButton(soundVolumeSlider, volumeBind);
+        soundButton = new SoundButton(volumeBind);
         soundBox.setHgap(5);
         soundBox.add(soundButton, 0, 0);
         soundBox.add(soundVolumeSlider, 1, 0);
@@ -313,19 +323,49 @@ public class Main extends Application {
         PlayPane.setHalignment(soundBox, HPos.RIGHT);
         PlayPane.setConstraints(soundBox, 6, 0);
         playPane.getChildren().add(soundBox);
+    }
 
-//        soundButton.setOnMouseClicked( mouseEvent -> {
-//            if(soundButton.isForbid())
-//                mediaPlayer.volumeProperty().unbind();
-//            else
-//                mediaPlayer.volumeProperty().bind(Bindings.createDoubleBinding(
-//                        () -> soundVolumeSlider.getValue() / 100, soundVolumeSlider.valueProperty()));
-//        });
-
+    public void loadExistedMusic(MediaInfo mediaInfo) {
+        try {
+            try {
+                new Media(new File(mediaInfo.getPath()).toURI().toURL().toExternalForm());
+            } catch (MediaException e) {
+                if (e.getType().equals(MediaException.Type.MEDIA_UNSUPPORTED)) {
+                    JFXDialogLayout content = new JFXDialogLayout();
+                    content.setHeading(new Text(LOC.getString("ERROR")));
+                    content.setBody(new Text(LOC.getString("MEDIA_UNSUPPORTED")));
+                    JFXDialog dialog = new JFXDialog(mainContent, content, JFXDialog.DialogTransition.CENTER);
+                    FlatButton button = new FlatButton(LOC.getString("OK"));
+                    button.setOnAction(actionEvent -> dialog.close());
+                    content.setActions(button);
+                    dialog.show();
+                    return;
+                }
+            }
+            if (mediaLoaded) {
+                mediaPlayer.stop();
+                mediaLoaded = false;
+            }
+            playListPage.setTimeFix(true);
+            media = new Media(new File(mediaInfo.getPath()).toURI().toURL().toExternalForm());
+            musicImage.setGraphic(new ImageView(defaultCover));
+//            if (mediaInfo.getCover() != null)
+//                musicImage.setGraphic(new ImageView(scale(mediaInfo.getCover(),
+//                        (int) musicImage.getWidth(), (int) musicImage.getHeight(), false)));
+            musicAlbum.setText(mediaInfo.getAlbum());
+            musicArtist.setText(mediaInfo.getArtist());
+            musicTitle.setText(mediaInfo.getTitle());
+            transfer = false;
+            preparePlay();
+            media.getMetadata().addListener(musicMetaDataListener);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void setButtonAction() {
         FileChooser fileChooser = new FileChooser();
+        DirectoryChooser directoryChooser = new DirectoryChooser();
         configureFileChooser(fileChooser);
 //        leftView.addMusicButton.setOnAction(actionEvent -> {
 //            File file = fileChooser.showOpenDialog(stage);
@@ -333,18 +373,73 @@ public class Main extends Application {
 //                openFile(file);
 //            }
 //        });
-        leftView.addMusicButton.setOnAction(actionEvent -> {
+        final ContextMenu openMenu = new ContextMenu();
+        openMenu.setAutoHide(true);
+        MenuItem openFileItem = new MenuItem(LOC.getString("OpenFile"));
+        openFileItem.setOnAction(actionEvent -> {
+            playListPage.releaseSearch();
             File file = fileChooser.showOpenDialog(stage);
             if (file != null)
                 openFile(file);
         });
+        openFileItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN, KeyCombination.SHORTCUT_DOWN));
+        MenuItem openDirItem = new MenuItem(LOC.getString("OpenDir"));
+        openDirItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN));
+        openDirItem.setOnAction(actionEvent -> {
+            playListPage.releaseSearch();
+            File file = directoryChooser.showDialog(stage);
+            if (file != null)
+                openAll(file);
+        });
+        openMenu.getItems().addAll(openFileItem, openDirItem);
+        leftView.addMusicButton.setContextMenu(openMenu);
+        leftView.addMusicButton.setOnAction(actionEvent -> {
+            if (openMenu.isShowing()) {
+                openMenu.hide();
+            } else {
+                openMenu.show(leftView.addMusicButton, Side.RIGHT, 0, 38);
+            }
+        });
 
-        leftView.curPlayButton.setOnAction(actionEvent -> mainContent.getChildren().setAll(curPlayPage));
+        leftView.curPlayButton.setOnAction(actionEvent -> {
+            mainContent.getChildren().setAll(curPlayPage);
+            rect.setStyle("-fx-background-color: black;");
+        });
 
         leftView.playListButton.setOnAction(actionEvent -> {
             mainContent.getChildren().setAll(playListPage);
+            rect.setStyle("-fx-background-color: white;");
 //            titleBar.setDark();
         });
+
+        leftView.search.setOnAction(actionEvent -> {
+            playListPage.releaseSearch();
+            if(leftView.searchField.getText().equals(""))
+                return;
+            playListPage.search(leftView.searchField.getText());
+        });
+
+        skipNext.setOnAction(actionEvent -> playListPage.playNext(this));
+        skipPrevious.setOnAction(actionEvent -> playListPage.playPrevious(this));
+    }
+
+    private void openAll(File file) {
+        try {
+            File[] fileList = file.listFiles();
+            if (fileList != null && fileList.length != 0) {
+                Thread thread = new Thread(() -> {
+                    for (File eachFile : fileList) {
+                        playListPage.addMusic(eachFile);
+//                            System.out.println(eachFile.toString());
+                    }
+                    playListPage.timeUpdate.start();
+                });
+                thread.setDaemon(true);
+                thread.start();
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void openFile(File file) {
@@ -368,64 +463,73 @@ public class Main extends Application {
                 mediaPlayer.stop();
                 mediaLoaded = false;
             }
+            playListPage.setTimeFix(false);
             media = new Media(file.toURI().toURL().toExternalForm());
-            mediaURLTransFer.setText(file.toString());
+
+            transfer = true;
+//            Transfer media file's path to the PlayListPage. PlayListPage is listening the widthProperty of
+//            mediaPathTransFer.
+            mediaPathTransFer.setText(file.toString());
+
             musicImage.setGraphic(new ImageView(defaultCover));
             musicAlbum.setText(LOC.getString("UnknownAlbum"));
             musicArtist.setText(LOC.getString("UnknownArtist"));
             String[] s = file.toString().split("\\\\");
             musicTitle.setText(s[s.length - 1].split("\\.")[0]);
-
-            media = new Media(file.toURI().toURL().toExternalForm());
-            mediaPlayer = new MediaPlayer(media);
-            soundButton.setPlayer(mediaPlayer);
-//            mediaView = new MediaView(mediaPlayer);
-//            root.setCenter(mediaView);
-            mediaLoaded = true;
-            curPlayPage.setMedia(mediaPlayer);
-            switchPauseToPlay();
-
-            try {
-                slider.maxProperty().unbind();
-                timeTot.textProperty().unbind();
-                slider.valueProperty().removeListener(sliderChangeListener);
-                slider.valueChangingProperty().removeListener(sliderValueChangingListener);
-                mediaPlayer.currentTimeProperty().removeListener(playerListener);
-                mediaPlayer.currentTimeProperty().removeListener(sliderDraggingPlayerListener);
-                mediaPlayer.volumeProperty().unbind();
-                media.getMetadata().removeListener(musicMetaDataListener);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-
-            try {
-                slider.maxProperty().bind(Bindings.createDoubleBinding(
-                        () -> mediaPlayer.getTotalDuration().toSeconds(),
-                        mediaPlayer.totalDurationProperty())
-                );
-                timeTot.textProperty().bind(Bindings.createStringBinding(
-                        () -> {
-                            int time = (int) (slider.maxProperty().getValue() + 0.5);
-                            return new DecimalFormat("00:").format(time / 60) +
-                                    new DecimalFormat("00").format(time % 60);
-                        }, slider.valueProperty())
-                );
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-
-            slider.valueProperty().addListener(sliderChangeListener);
-            mediaPlayer.currentTimeProperty().addListener(playerListener);
-            slider.valueChangingProperty().addListener(sliderValueChangingListener);
-
-            mediaPlayer.volumeProperty().bind(volumeBind);
-            mediaPlayer.setOnEndOfMedia(() -> curPlayPage.stop());
+            preparePlay();
 
             media.getMetadata().addListener(musicMetaDataListener);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    private void preparePlay() {
+        mediaPlayer = new MediaPlayer(media);
+        soundButton.setPlayer(mediaPlayer);
+        mediaLoaded = true;
+        curPlayPage.setMedia(mediaPlayer);
+        switchPauseToPlay();
+        try {
+            slider.maxProperty().unbind();
+            timeTot.textProperty().unbind();
+            slider.valueProperty().removeListener(sliderChangeListener);
+            slider.valueChangingProperty().removeListener(sliderValueChangingListener);
+//            mediaPlayer.currentTimeProperty().removeListener(playerListener);
+//            mediaPlayer.currentTimeProperty().removeListener(sliderDraggingPlayerListener);
+//            mediaPlayer.volumeProperty().unbind();
+//            media.getMetadata().removeListener(musicMetaDataListener);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        try {
+//            Set maximum value of time slider as the media's total time. Binding is used because total time could not be
+//            get immediately.
+            slider.maxProperty().bind(Bindings.createDoubleBinding(
+                    () -> media.getDuration().toSeconds(),
+                    media.durationProperty())
+            );
+
+//            Bind total time text with media's total time.
+            timeTot.textProperty().bind(Bindings.createStringBinding(
+                    () -> {
+                        int time = (int) (slider.maxProperty().getValue() + 0.5);
+                        return new DecimalFormat("00:").format(time / 60) +
+                                new DecimalFormat("00").format(time % 60);
+                    }, slider.valueProperty())
+            );
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        slider.valueProperty().addListener(sliderChangeListener);
+        mediaPlayer.currentTimeProperty().addListener(playerListener);
+        slider.valueChangingProperty().addListener(sliderValueChangingListener);
+
+        mediaPlayer.volumeProperty().bind(volumeBind);
+
+//        Stop audio visualized effect at the end of playing.
+        mediaPlayer.setOnEndOfMedia(() -> curPlayPage.stop());
     }
 
     private void switchPauseToPlay() {
@@ -459,31 +563,49 @@ public class Main extends Application {
         }
     }
 
+    //    How to transfer meta data to the PlayListPage? Ones meta data is gotten, save the data into the metaDataTransfer,
+//    then change its width. Meanwhile PlayListPage is listening the widthProperty of metaDataTransfer.
     private void handleMetaData(String key, Object value) {
         if (key.equals("album")) {
             musicAlbum.setText(value.toString());
-            ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
-            ((Label) metaDataTransfer.getChildren().get(1)).setText(value.toString());
-            metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+            if (transfer) {
+                ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
+                ((Label) metaDataTransfer.getChildren().get(1)).setText(value.toString());
+                metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+            }
         }
         if (key.equals("artist")) {
             musicArtist.setText(value.toString());
-            ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
-            ((Label) metaDataTransfer.getChildren().get(1)).setText(value.toString());
-            metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+            if (transfer) {
+                ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
+                ((Label) metaDataTransfer.getChildren().get(1)).setText(value.toString());
+                metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+            }
         }
         if (key.equals("title")) {
             musicTitle.setText(value.toString());
-            ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
-            ((Label) metaDataTransfer.getChildren().get(1)).setText(value.toString());
-            metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+            if (transfer) {
+                ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
+                ((Label) metaDataTransfer.getChildren().get(1)).setText(value.toString());
+                metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+            }
         }
         if (key.equals("image")) {
             musicImage.setGraphic(new ImageView(scale((Image) value,
                     (int) musicImage.getWidth(), (int) musicImage.getHeight(), false)));
-            ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
-            ((Label) metaDataTransfer.getChildren().get(1)).setGraphic(new ImageView((Image) value));
-            metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+//            ((Label) metaDataTransfer.getChildren().get(0)).setText(key);
+//            ((Label) metaDataTransfer.getChildren().get(1)).setGraphic(new ImageView((Image) value));
+//            metaDataTransfer.setPrefWidth(metaDataTransfer.getPrefWidth() + 0.1);
+        }
+    }
+
+    void setLeftView(boolean t) {
+        if (!t) {
+            undecorator.setTitle("");
+            leftView.searchBtn.setOpacity(1);
+        } else {
+            undecorator.setTitle("FX Music Player");
+            leftView.searchBtn.setOpacity(0);
         }
     }
 
@@ -497,6 +619,7 @@ public class Main extends Application {
         );
     }
 
+    //    Resize image as specified size.
     private static Image scale(Image source, int targetWidth, int targetHeight, boolean preserveRatio) {
         ImageView imageView = new ImageView(source);
         imageView.setPreserveRatio(preserveRatio);

@@ -149,7 +149,6 @@
  ******************************************************************************/
 
 .scroll-pane {
-    
     -fx-background-insets: 0;
     -fx-padding: 0;
 }
@@ -160,4 +159,10 @@
 
 .scroll-pane .corner {
     -fx-background-insets: 0;
+}
+
+.jfx-scroll-pane {
+    -fx-padding: 0;
+    -fx-border-width: 0px;
+    -fx-border-color: transparent;
 }

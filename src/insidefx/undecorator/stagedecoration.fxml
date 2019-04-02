@@ -11,7 +11,7 @@
 
 <AnchorPane id="decorationRoot" fx:id="decorationRoot" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" pickOnBounds="false" prefHeight="400.0" prefWidth="667.0" snapToPixel="true" styleClass="decoration-resize" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <Button fx:id="close" mnemonicParsing="false" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" styleClass="decoration-button-close" text="" AnchorPane.rightAnchor="-5.0" AnchorPane.topAnchor="-5.0">
+    <Button fx:id="close" layoutX="640.0" layoutY="-5.0" mnemonicParsing="false" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" styleClass="decoration-button-close" text="" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="-5.0">
       <rotationAxis>
         <Point3D />
       </rotationAxis>
@@ -19,27 +19,27 @@
             <Cursor fx:constant="DEFAULT" />
          </cursor>
     </Button>
-    <Button fx:id="maximize" mnemonicParsing="false" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" styleClass="decoration-button-maximize" text="" AnchorPane.rightAnchor="22.0" AnchorPane.topAnchor="-5.0">
+    <Button fx:id="maximize" layoutX="613.0" layoutY="-5.0" mnemonicParsing="false" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" styleClass="decoration-button-maximize" text="" AnchorPane.rightAnchor="27.0" AnchorPane.topAnchor="-5.0">
          <cursor>
             <Cursor fx:constant="DEFAULT" />
          </cursor></Button>
-    <Button fx:id="minimize" mnemonicParsing="false" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" style="" styleClass="decoration-button-minimize" text="" AnchorPane.rightAnchor="49.0" AnchorPane.topAnchor="-5.0">
+    <Button fx:id="minimize" layoutX="586.0" layoutY="-5.0" mnemonicParsing="false" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" style="" styleClass="decoration-button-minimize" text="" AnchorPane.rightAnchor="54.0" AnchorPane.topAnchor="-5.0">
          <cursor>
             <Cursor fx:constant="DEFAULT" />
          </cursor></Button>
     <Button fx:id="resize" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" mouseTransparent="true" opacity="0.0" pickOnBounds="true" prefHeight="10.0" prefWidth="10.0" styleClass="decoration-button-resize" text="" AnchorPane.bottomAnchor="-5.0" AnchorPane.rightAnchor="-5.0" />
-    <Button id="StageMenu" fx:id="menu" layoutX="0.0" mnemonicParsing="false" pickOnBounds="true" prefHeight="30.0" prefWidth="594.0" styleClass="decoration-button-menu" text="" AnchorPane.leftAnchor="-3.0" AnchorPane.rightAnchor="76.0" AnchorPane.topAnchor="-7.0">
+    <Button id="StageMenu" fx:id="menu" layoutX="-4.0" layoutY="-1.0" mnemonicParsing="false" pickOnBounds="true" prefHeight="30.0" prefWidth="590.0" styleClass="decoration-button-menu" text="" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="81.0" AnchorPane.topAnchor="-1.0">
          <cursor>
             <Cursor fx:constant="DEFAULT" />
          </cursor>
          <contextMenu>
             <ContextMenu fx:id="contextMenu" />
          </contextMenu></Button>
-    <Button fx:id="fullscreen" mnemonicParsing="false" opacity="0.0" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" style="" styleClass="decoration-button-fullscreen" text="" AnchorPane.rightAnchor="74.0" AnchorPane.topAnchor="-5.0">
+    <Button fx:id="fullscreen" layoutX="559.0" layoutY="-5.0" mnemonicParsing="false" opacity="0.0" pickOnBounds="true" prefHeight="25.0" prefWidth="27.0" style="" styleClass="decoration-button-fullscreen" text="" AnchorPane.rightAnchor="81.0" AnchorPane.topAnchor="-5.0">
          <cursor>
             <Cursor fx:constant="DEFAULT" />
          </cursor></Button>
-    <Label id="TitleLabel" fx:id="title" layoutY="7.0" mouseTransparent="true" prefWidth="384.0" text="Title bar" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="166.0">
+    <Label id="TitleLabel" fx:id="title" layoutX="148.0" layoutY="7.0" mouseTransparent="true" prefHeight="15.0" prefWidth="353.0" text="Title bar" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="166.0">
       <effect>
         <Glow />
       </effect>

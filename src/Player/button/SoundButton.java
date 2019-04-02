@@ -15,7 +15,7 @@ public class SoundButton extends Button {
     private boolean forbid;
     private MediaPlayer player;
 
-    public SoundButton(SoundSlider slider, DoubleBinding bind) {
+    public SoundButton(DoubleBinding bind) {
         forbid = false;
         setGraphic(icon);
         getStylesheets().add(Main.class.getResource("resources/SoundButton.css").toExternalForm());
@@ -35,13 +35,13 @@ public class SoundButton extends Button {
             forbid = !forbid;
             if (forbid) {
                 setGraphic(fIcon);
-                if(player != null){
+                if (player != null) {
                     player.volumeProperty().unbind();
                     player.setVolume(0);
                 }
             } else {
                 setGraphic(icon);
-                if(player != null){
+                if (player != null) {
                     player.volumeProperty().bind(bind);
                 }
             }

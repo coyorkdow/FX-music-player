@@ -120,7 +120,7 @@
 }
 .decoration-button-close:hover{
     /* -fx-background-color: null; */
-    -fx-background-color: rgba(0, 0, 0, 0.1);
+    -fx-background-color: rgba(232, 59, 24, 0.7);
     /* -fx-background-image:url("./close-hover.png"); */
     -fx-background-repeat:no-repeat;
 }

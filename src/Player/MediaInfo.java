@@ -1,26 +1,20 @@
 package Player;
 
-import javafx.scene.image.Image;
-
 public class MediaInfo {
 
     private String title;
     private String artist;
     private String album;
-    private Image cover;
-    private double time;
-    private String url;
+    private String path;
 
     public MediaInfo() {
         title = null;
         artist = null;
         album = null;
-        cover = null;
-        time = 0;
     }
 
-    public void setUrl(String url){
-        this.url = url;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public void setTitle(String title) {
@@ -35,14 +29,6 @@ public class MediaInfo {
         this.album = album;
     }
 
-    public void setCover(Image cover) {
-        this.cover = cover;
-    }
-
-    public void setTime(double time) {
-        this.time = time;
-    }
-
     public String getTitle() {
         return title;
     }
@@ -55,15 +41,7 @@ public class MediaInfo {
         return album;
     }
 
-    public Image getCover() {
-        return cover;
-    }
-
-    public double getTime() {
-        return time;
-    }
-
-    public String getUrl(){
-        return url;
+    public String getPath() {
+        return path;
     }
 }

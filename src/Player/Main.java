@@ -8,6 +8,7 @@ import com.jfoenix.controls.JFXDialogLayout;
 import insidefx.undecorator.Undecorator;
 import insidefx.undecorator.UndecoratorScene;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -377,16 +378,16 @@ public class Main extends Application {
         openMenu.setAutoHide(true);
         MenuItem openFileItem = new MenuItem(LOC.getString("OpenFile"));
         openFileItem.setOnAction(actionEvent -> {
-            playListPage.releaseSearch();
             File file = fileChooser.showOpenDialog(stage);
-            if (file != null)
-                openFile(file);
+            if (file != null) {
+                playListPage.releaseSearch();
+                Platform.runLater(() -> openFile(file));
+            }
         });
         openFileItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN, KeyCombination.SHORTCUT_DOWN));
         MenuItem openDirItem = new MenuItem(LOC.getString("OpenDir"));
         openDirItem.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN));
         openDirItem.setOnAction(actionEvent -> {
-            playListPage.releaseSearch();
             File file = directoryChooser.showDialog(stage);
             if (file != null)
                 openAll(file);
@@ -409,13 +410,11 @@ public class Main extends Application {
         leftView.playListButton.setOnAction(actionEvent -> {
             mainContent.getChildren().setAll(playListPage);
             rect.setStyle("-fx-background-color: white;");
-//            titleBar.setDark();
+            playListPage.releaseSearch();
         });
 
         leftView.search.setOnAction(actionEvent -> {
             playListPage.releaseSearch();
-            if(leftView.searchField.getText().equals(""))
-                return;
             playListPage.search(leftView.searchField.getText());
         });
 
@@ -425,14 +424,15 @@ public class Main extends Application {
 
     private void openAll(File file) {
         try {
+            playListPage.releaseSearch();
             File[] fileList = file.listFiles();
             if (fileList != null && fileList.length != 0) {
                 Thread thread = new Thread(() -> {
                     for (File eachFile : fileList) {
                         playListPage.addMusic(eachFile);
-//                            System.out.println(eachFile.toString());
                     }
-                    playListPage.timeUpdate.start();
+                    if (!playListPage.timeUpdate.isAlive())
+                        playListPage.timeUpdate.start();
                 });
                 thread.setDaemon(true);
                 thread.start();

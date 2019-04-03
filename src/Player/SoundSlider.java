@@ -6,6 +6,6 @@ public class SoundSlider extends JFXSlider {
     public SoundSlider(double min, double max, double value) {
         super(min, max, value);
         setBlockIncrement(1f);
-        getStylesheets().add(Main.class.getResource("resources/TimeSlider.css").toExternalForm());
+        getStylesheets().add(Main.class.getResource("resources/SoundSlider.css").toExternalForm());
     }
 }

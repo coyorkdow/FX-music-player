@@ -1,0 +1,42 @@
+.jfx-slider {
+    -jfx-indicator-position: right;
+}
+
+/* Styling the slider track */
+.jfx-slider > .track {
+    -fx-background-color: #6F727B;
+}
+
+/* Styling the slider thumb */
+.jfx-slider > .thumb {
+    -fx-background-color: #7D9393;
+}
+
+/* Styling the filled track */
+.jfx-slider > .colored-track {
+    -fx-background-color: #B8C9C9;
+}
+
+/* Styling the animated thumb */
+.jfx-slider > .animated-thumb {
+    -fx-background-color: #DAE9E9;
+}
+
+/* Styling the slider value text inside animated thumb */
+.jfx-slider .slider-value {
+    -fx-fill: #272927;
+    -fx-stroke: none;
+    /* -fx-stroke-width: 0.5; */
+}
+
+
+/*Jfx-Button .roundButton.setStyle(*/
+      /*"-fx-background-radius: 5em; " +*/
+      /*"-fx-min-width: 3px; " +*/
+      /*"-fx-min-height: 3px; " +*/
+      /*"-fx-max-width: 3px; " +*/
+      /*"-fx-max-height: 3px; " +*/
+      /*"-fx-background-color: -fx-body-color;" +*/
+      /*"-fx-background-insets: 0px; " +*/
+      /*"-fx-padding: 0px;"*/
+      /*);*/

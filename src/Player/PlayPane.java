@@ -6,7 +6,6 @@ import javafx.scene.shape.Rectangle;
 
 class PlayPane extends GridPane {
     PlayPane() {
-
         Rectangle clip = new Rectangle();
         this.setClip(clip);
         clip.widthProperty().bind(this.widthProperty());

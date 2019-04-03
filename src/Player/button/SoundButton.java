@@ -1,7 +1,6 @@
 package Player.button;
 
 import Player.Main;
-import Player.SoundSlider;
 import javafx.beans.binding.DoubleBinding;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;

@@ -5,7 +5,9 @@ import com.jfoenix.controls.JFXListView;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -21,9 +23,8 @@ import java.util.ResourceBundle;
 
 public class PlayListPage extends JFXScrollPane {
 
-    private JFXListView<InfoPane> list;
+    final private JFXListView<InfoPane> list;
     private Label title;
-    private StackPane content;
     private Map<Integer, InfoPane> inListMediaRecord;
     private Map<Integer, InfoPane> searchHold;
     private ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
@@ -31,6 +32,7 @@ public class PlayListPage extends JFXScrollPane {
     private Boolean timeFix = false;
 
     public Thread timeUpdate;
+    final private Object lock = new Object();
 
     public PlayListPage(Main main) {
         this.inListMediaRecord = new HashMap<>();
@@ -42,8 +44,37 @@ public class PlayListPage extends JFXScrollPane {
         list = new JFXListView<>();
         list.setEditable(true);
 
+        final ContextMenu itemMenu = new ContextMenu();
+        itemMenu.setAutoHide(true);
+        MenuItem play = new MenuItem(LOC.getString("Play"));
+        MenuItem remove = new MenuItem(LOC.getString("Remove"));
+        itemMenu.getItems().addAll(play, remove);
+
+        play.setOnAction(actionEvent -> {
+            InfoPane selectedPane = list.getSelectionModel().getSelectedItem();
+            main.loadExistedMusic(selectedPane.getMediaInfo());
+            if (curPlaying != null)
+                curPlaying.removePlayingIcon();
+            selectedPane.setPlayingIcon();
+            curPlaying = selectedPane;
+        });
+
+        remove.setOnAction(actionEvent -> {
+            InfoPane selectedPane = list.getSelectionModel().getSelectedItem();
+            if(selectedPane.equals(curPlaying))
+                curPlaying = null;
+            list.getItems().remove(selectedPane);
+        });
+
         list.setOnMouseClicked(mouseEvent -> {
-            if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton().toString().equals("PRIMARY")) {
+            if(mouseEvent.getButton().toString().equals("SECONDARY")){
+                if (itemMenu.isShowing()) {
+                    itemMenu.hide();
+                } else {
+                    itemMenu.show(list.getSelectionModel().getSelectedItem(), mouseEvent.getScreenX(), mouseEvent.getScreenY());
+                }
+            }
+            else if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton().toString().equals("PRIMARY")) {
                 InfoPane selectedPane = list.getSelectionModel().getSelectedItem();
                 main.loadExistedMusic(selectedPane.getMediaInfo());
                 if (curPlaying != null)
@@ -104,15 +135,9 @@ public class PlayListPage extends JFXScrollPane {
         title.maxWidthProperty().bind(Bindings.createDoubleBinding(
                 () -> getWidth() * 0.9, widthProperty()));
         getMidBar().getChildren().add(title);
-        content = new StackPane();
+        StackPane content = new StackPane();
         list.maxWidthProperty().bind(Bindings.createDoubleBinding(
                 () -> getWidth() * 0.9, widthProperty()));
-//        list.itemsProperty().addListener((observableValue, infoPanes, t1) -> {
-//            if (list.getItems().size() > 1) {
-//                double cal = list.getItems().size() * list.getItems().get(1).getHeight();
-//                list.setMinHeight(cal * 2);
-//            }
-//        });
         list.setPrefHeight(300);
         list.minHeightProperty().bind(list.prefHeightProperty());
         list.maxHeightProperty().bind(list.prefHeightProperty());
@@ -120,16 +145,9 @@ public class PlayListPage extends JFXScrollPane {
             @Override
             public void onChanged(Change<? extends InfoPane> change) {
                 try {
-                    list.prefHeightProperty().unbind();
-                    list.prefHeightProperty().bind(Bindings.createDoubleBinding(
-                            () -> {
-                                double cal = list.getItems().size() * list.getItems().get(0).getHeight();
-                                if (cal > 300)
-                                    return cal;
-                                else return (double) 300;
-                            },
-                            list.getItems().get(0).heightProperty()
-                    ));
+                    double cal = 19 * list.getItems().size();
+                    if (cal > 300)
+                        list.setPrefHeight(cal);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -140,31 +158,46 @@ public class PlayListPage extends JFXScrollPane {
         setContent(content);
 //        JFXScrollPane.smoothScrolling((ScrollPane) this.getChildren().get(0));
         timeUpdate = new Thread(() -> {
-            for (int i = 0; i < list.getItems().size(); i++) {
-                InfoPane infoPane = list.getItems().get(i);
-                if (!infoPane.timeFix())
-                    continue;
+            Media media;
+            MediaPlayer mediaPlayer;
+            int size = 0;
+            do {
+                if (size == list.getItems().size())
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        System.out.println(e.getMessage());
+                    }
+                size = list.getItems().size();
                 try {
-                    Media media = new Media(new File(infoPane.getMediaInfo().getPath()).toURI().toURL().toExternalForm());
-                    MediaPlayer mediaPlayer = new MediaPlayer(media);
-                    mediaPlayer.setOnReady(() -> {
-                    });
-                    while (media.getDuration().equals(Duration.UNKNOWN)) ;
-                    int time = (int) (media.getDuration().toSeconds() + 0.5);
-                    Platform.runLater(() -> infoPane.setTime(new DecimalFormat("00:").format(time / 60) +
-                            new DecimalFormat("00").format(time % 60)));
-                    infoPane.setTimeFix(false);
-                    media = null;
-                    mediaPlayer = null;
+                    for (int i = 0; i < size; i++) {
+                        InfoPane infoPane;
+                        infoPane = list.getItems().get(i);
+                        if (!infoPane.timeFix())
+                            continue;
+                        try {
+                            media = new Media(new File(infoPane.getMediaInfo().getPath()).toURI().toURL().toExternalForm());
+                            mediaPlayer = new MediaPlayer(media);
+                            while (media.getDuration().equals(Duration.UNKNOWN))
+                                Thread.sleep(100);
+                            int time = (int) (media.getDuration().toSeconds() + 0.5);
+                            Platform.runLater(() -> infoPane.setTime(new DecimalFormat("00:").format(time / 60) +
+                                    new DecimalFormat("00").format(time % 60)));
+                            infoPane.setTimeFix(false);
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
-            }
+            } while (!Thread.currentThread().isInterrupted());
+
         });
         timeUpdate.setDaemon(true);
     }
 
-    public void addMusic(File file) {
+    public synchronized void addMusic(File file) {
         if (inListMediaRecord.containsKey(file.hashCode()))
             return;
         InfoPane infoPane = new InfoPane();
@@ -178,32 +211,44 @@ public class PlayListPage extends JFXScrollPane {
         infoPane.setPath(file.toString());
         infoPane.removePlayingIcon();
         inListMediaRecord.put(file.hashCode(), infoPane);
-        Platform.runLater(() -> list.getItems().add(0, infoPane));
+        synchronized (lock) {
+            Platform.runLater(() -> list.getItems().add(0, infoPane));
+        }
         infoPane.autoInfo(file);
     }
 
     public void search(String keyWord) {
         new Thread(() -> {
-            int size = list.getItems().size();
-            for (int i = 0; i < size; i++) {
-                InfoPane infoPane = list.getItems().get(i);
-                if (!infoPane.getMediaInfo().getTitle().contains(keyWord)) {
-                    searchHold.put(i, infoPane);
+            if (keyWord.equals(""))
+                return;
+            synchronized (lock) {
+                int size = list.getItems().size();
+                for (int i = 0; i < size; i++) {
+                    InfoPane infoPane = list.getItems().get(i);
+                    if (!infoPane.getMediaInfo().getTitle().contains(keyWord)) {
+                        searchHold.put(i, infoPane);
+                    }
                 }
-            }
-            Platform.runLater(() -> title.setText("\"" + keyWord + "\" " + LOC.getString("Result")));
-            for (Integer key : searchHold.keySet()) {
-                Platform.runLater(() -> list.getItems().remove(searchHold.get(key)));
+                Platform.runLater(() -> title.setText("\"" + keyWord + "\" " + LOC.getString("Result")));
+                for (Integer key : searchHold.keySet()) {
+                    if (searchHold.get(key) == null)
+                        continue;
+                    Platform.runLater(() -> list.getItems().remove(searchHold.get(key)));
+                }
             }
         }).start();
     }
 
-    public void releaseSearch() {
-        title.setText(LOC.getString("PlayList"));
-        for (Integer key : searchHold.keySet()) {
-            list.getItems().add(key, searchHold.get(key));
+    public synchronized void releaseSearch() {
+        synchronized (lock) {
+            title.setText(LOC.getString("PlayList"));
+            for (Integer key : searchHold.keySet()) {
+                if (searchHold.get(key) == null)
+                    continue;
+                list.getItems().add(key, searchHold.get(key));
+            }
+            searchHold.clear();
         }
-        searchHold.clear();
     }
 
     public void playNext(Main main) {

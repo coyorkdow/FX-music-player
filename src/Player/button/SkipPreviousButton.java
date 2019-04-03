@@ -13,17 +13,5 @@ public class SkipPreviousButton extends Button {
         getStylesheets().add(Main.class.getResource("resources/SkipButton.css").toExternalForm());
         setOnMouseEntered(mouseEvent -> setGraphic(iconHover));
         setOnMouseExited(mouseEvent -> setGraphic(icon));
-//        setOnMouseEntered(new EventHandler<MouseEvent>() {
-//            @Override
-//            public void handle(MouseEvent mouseEvent) {
-//                setGraphic(iconHover);
-//            }
-//        });
-//        setOnMouseExited(new EventHandler<MouseEvent>() {
-//            @Override
-//            public void handle(MouseEvent mouseEvent) {
-//                setGraphic(icon);
-//            }
-//        });
     }
 }

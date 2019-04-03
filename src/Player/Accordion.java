@@ -2,6 +2,7 @@ package Player;
 
 import Player.button.FlatButton;
 import com.jfoenix.controls.JFXTextField;
+import control.Tooltip;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -19,9 +20,8 @@ import java.util.ResourceBundle;
 class Accordion extends HBox {
 
     private boolean fold;
-    FlatButton btn, searchBtn, curPlayButton, playListButton, addMusicButton;
+    FlatButton searchBtn, curPlayButton, playListButton, addMusicButton;
     FlatButton search;
-    private VBox buttonBox;
     private VBox popBox;
     JFXTextField searchField;
 
@@ -30,14 +30,18 @@ class Accordion extends HBox {
         ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
 
         fold = false;
-        buttonBox = new VBox();
+        VBox buttonBox = new VBox();
         popBox = new VBox();
 
-        btn = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_menu_black_18dp.png").toString()));
+        FlatButton btn = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_menu_black_18dp.png").toString()));
         searchBtn = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_search_black_18dp.png").toString()));
         curPlayButton = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_equalizer_black_18dp.png").toString()));
         playListButton = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_playlist_play_black_18dp.png").toString()));
         addMusicButton = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_add_black_18dp.png").toString()));
+
+        curPlayButton.setTooltip(new Tooltip(LOC.getString("CurPlay")));
+        playListButton.setTooltip(new Tooltip(LOC.getString("PlayList")));
+        addMusicButton.setTooltip(new Tooltip(LOC.getString("Open")));
 
         buttonBox.getChildren().addAll(btn, searchBtn, curPlayButton, playListButton, addMusicButton);
         getChildren().add(buttonBox);
@@ -94,6 +98,7 @@ class Accordion extends HBox {
                 });
             }
         });
+        searchBtn.setTooltip(new Tooltip(LOC.getString("Search")));
 
         btn.setOnAction(actionEvent -> {
             if (!fold) {
@@ -117,12 +122,9 @@ class Accordion extends HBox {
                                 getWidth() - 46 * 6, Interpolator.EASE_BOTH))
                 );
                 timeline.play();
-                timeline.setOnFinished(actionEvent1 -> {
-                    main.setLeftView(false);
-                });
+                timeline.setOnFinished(actionEvent1 -> main.setLeftView(false));
             }
         });
-
 
         setStyle(" -fx-background-color: linear-gradient(to bottom, #e6dfda, #94918b);");
 //        heightProperty().addListener((observableValue, number, t1) -> {

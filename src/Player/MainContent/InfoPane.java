@@ -6,7 +6,6 @@ import javafx.collections.MapChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -147,7 +146,7 @@ public class InfoPane extends GridPane {
             Media media = new Media(file.toURI().toURL().toExternalForm());
             media.getMetadata().addListener(musicMetaDataListener);
             Thread.sleep(100);
-            media = null;
+//            media = null;
         } catch (Exception e) {
         }
         timeFix = true;

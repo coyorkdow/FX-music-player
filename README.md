@@ -11,4 +11,4 @@ JFoenix is under Apache License 2.0, I modified some of its source codes, the mo
 
 ![2](https://github.com/coyorkdow/FX-music-player/blob/master/2.png)
 
-<video src="https://github.com/coyorkdow/FX-music-player/blob/master/FX Music Player 2019-04-03 13-37-58.mp4"></video>
+![2](https://github.com/coyorkdow/FX-music-player/blob/master/3.gif)

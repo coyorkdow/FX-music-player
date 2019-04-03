@@ -7,7 +7,7 @@ JFoenix is under Apache License 2.0, I modified some of its source codes, the mo
 
 <font size=3>Fx-music-player supports audio visualize. A spectrum graph would be drawing dynamically when music is played.</font>
 
-![1](.\1.png)
+![1](https://github.com/coyorkdow/FX-music-player/blob/master/2.png)
 
 ![2](.\2.png)
 

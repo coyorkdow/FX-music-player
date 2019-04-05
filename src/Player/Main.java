@@ -357,6 +357,11 @@ public class Main extends Application {
             musicArtist.setText(mediaInfo.getArtist());
             musicTitle.setText(mediaInfo.getTitle());
             transfer = false;
+            try{
+                curPlayPage.setLyric(new File(mediaInfo.getPath().substring(0, mediaInfo.getPath().lastIndexOf('.')) + ".lrc"));
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+            }
             preparePlay();
             media.getMetadata().addListener(musicMetaDataListener);
         } catch (Exception e) {
@@ -368,12 +373,6 @@ public class Main extends Application {
         FileChooser fileChooser = new FileChooser();
         DirectoryChooser directoryChooser = new DirectoryChooser();
         configureFileChooser(fileChooser);
-//        leftView.addMusicButton.setOnAction(actionEvent -> {
-//            File file = fileChooser.showOpenDialog(stage);
-//            if (file != null) {
-//                openFile(file);
-//            }
-//        });
         final ContextMenu openMenu = new ContextMenu();
         openMenu.setAutoHide(true);
         MenuItem openFileItem = new MenuItem(LOC.getString("OpenFile"));
@@ -476,6 +475,11 @@ public class Main extends Application {
             musicArtist.setText(LOC.getString("UnknownArtist"));
             String[] s = file.toString().split("\\\\");
             musicTitle.setText(s[s.length - 1].split("\\.")[0]);
+            try{
+                curPlayPage.setLyric(new File(file.toString().substring(0, file.toString().lastIndexOf('.')) + ".lrc"));
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+            }
             preparePlay();
 
             media.getMetadata().addListener(musicMetaDataListener);
@@ -496,10 +500,10 @@ public class Main extends Application {
             timeTot.textProperty().unbind();
             slider.valueProperty().removeListener(sliderChangeListener);
             slider.valueChangingProperty().removeListener(sliderValueChangingListener);
-//            mediaPlayer.currentTimeProperty().removeListener(playerListener);
-//            mediaPlayer.currentTimeProperty().removeListener(sliderDraggingPlayerListener);
-//            mediaPlayer.volumeProperty().unbind();
-//            media.getMetadata().removeListener(musicMetaDataListener);
+            mediaPlayer.currentTimeProperty().removeListener(playerListener);
+            mediaPlayer.currentTimeProperty().removeListener(sliderDraggingPlayerListener);
+            mediaPlayer.volumeProperty().unbind();
+            media.getMetadata().removeListener(musicMetaDataListener);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -527,6 +531,7 @@ public class Main extends Application {
         slider.valueChangingProperty().addListener(sliderValueChangingListener);
 
         mediaPlayer.volumeProperty().bind(volumeBind);
+
 
 //        Stop audio visualized effect at the end of playing.
         mediaPlayer.setOnEndOfMedia(() -> curPlayPage.stop());

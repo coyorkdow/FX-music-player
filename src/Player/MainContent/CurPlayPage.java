@@ -1,23 +1,37 @@
 package Player.MainContent;
 
 import Player.Main;
+import com.jfoenix.controls.JFXListView;
+import control.ColorChooser;
+import control.Lyric;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+
+import java.io.File;
+import java.util.ArrayList;
 
 public class CurPlayPage extends StackPane {
 
     private MediaPlayer audioMediaPlayer;
     private XYChart.Data[] seriesData;
     final private BarChart<String, Number> bc;
+    private JFXListView<Label> lyricView;
 
-    ColorChooser[] colorChooser = new ColorChooser[32];
+    private ColorChooser[] colorChooser = new ColorChooser[32];
+    private Lyric lyric = null;
+
+    private ArrayList<Object> curLabels = null;
 
     public CurPlayPage() {
         Rectangle clip = new Rectangle();
@@ -51,10 +65,44 @@ public class CurPlayPage extends StackPane {
             series1.getData().add(seriesData[i]);
         }
         bc.getData().add(series1);
-        bc.getStylesheets().add(Main.class.getResource("resources/CurPlayPage.css").toExternalForm());
+
         this.getChildren().add(bc);
-//        setMouseTransparent(true);
+
+        lyricView = new JFXListView<>();
+        lyricView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        lyricView.maxWidthProperty().bind(lyricView.minWidthProperty());
+        lyricView.minWidthProperty().bind(Bindings.createDoubleBinding(() -> bc.getWidth() * 0.9, bc.widthProperty()));
+        lyricView.maxHeightProperty().bind(lyricView.minHeightProperty());
+        lyricView.minHeightProperty().bind(Bindings.createDoubleBinding(() -> bc.getHeight() * 0.5, bc.heightProperty()));
+
+        lyricView.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> mouseEvent.consume());
+
+        this.getChildren().add(lyricView);
+
+        getStylesheets().add(Main.class.getResource("resources/CurPlayPage.css").toExternalForm());
         stop();
+    }
+
+    public void setLyric(File file) {
+        lyricView.getItems().clear();
+        lyric = null;
+        try {
+            lyric = new Lyric(file);
+            lyric.initIterator();
+            Label label;
+            while (lyric.hasNext()) {
+                String[] lyricSameTime = lyric.next();
+                for (String str : lyricSameTime) {
+                    label = new Label(str);
+                    label.setTextFill(Color.GREY);
+                    label.setStyle("-fx-font-size: 16px;");
+                    lyricView.getItems().add(label);
+                    lyric.link(label);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            lyric = null;
+        }
     }
 
     public void setMedia(MediaPlayer mediaPlayer) {
@@ -70,6 +118,29 @@ public class CurPlayPage extends StackPane {
 //                series1Data[i].setYValue(phases[i] * 10);
 //                series2Data[i].setYValue(-(magnitudes[i]+60));//Bottom series
         }
+        if (lyric != null)
+            try {
+                lyricView.scrollTo(0);
+                curLabels = null;
+                audioMediaPlayer.currentTimeProperty().addListener((observableValue, duration, t1) -> {
+                            if (lyric.contains(audioMediaPlayer.getCurrentTime())) {
+                                ArrayList<Object> labelList = lyric.getLinked(audioMediaPlayer.getCurrentTime());
+                                if (labelList.equals(curLabels))
+                                    return;
+                                if (curLabels != null) {
+                                    for (Object object : curLabels)
+                                        ((Label) object).setTextFill(Color.GREY);
+                                }
+                                for (Object object : labelList)
+                                    ((Label) object).setTextFill(Color.WHITE);
+                                lyricView.scrollTo((Label) labelList.get(0));
+                                curLabels = labelList;
+                            }
+                        }
+                );
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
     }
 
     public void start() {
@@ -80,8 +151,6 @@ public class CurPlayPage extends StackPane {
                     bc.lookup(".data" + i + ".chart-bar").setStyle("-fx-background-color:" +
                             colorChooser[i].nextColor() + ";");
                     seriesData[i].setYValue(magnitudes[i] + 60); //Top Series
-//                50 * fuc((magnitudes[i] + 60) / 120)
-//                series1Data[i].setYValue(phases[i] * 10);
                 }
             });
         } catch (Exception e) {

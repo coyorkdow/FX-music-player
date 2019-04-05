@@ -12,13 +12,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
+import javafx.util.Pair;
 
 import java.io.File;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 
 public class PlayListPage extends JFXScrollPane {
@@ -26,17 +24,19 @@ public class PlayListPage extends JFXScrollPane {
     final private JFXListView<InfoPane> list;
     private Label title;
     private Map<Integer, InfoPane> inListMediaRecord;
-    private Map<Integer, InfoPane> searchHold;
+    private Vector<Pair<Integer, InfoPane>> searchHold;
     private ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
     private InfoPane curPlaying = null;
     private Boolean timeFix = false;
+
+    private String keyWord;
 
     public Thread timeUpdate;
     final private Object lock = new Object();
 
     public PlayListPage(Main main) {
         this.inListMediaRecord = new HashMap<>();
-        this.searchHold = new HashMap<>();
+        this.searchHold = new Vector<>();
         header.maxWidthProperty().bind(Bindings.createDoubleBinding(
                 () -> getWidth() * 0.9, widthProperty()));
         header.minWidthProperty().bind(Bindings.createDoubleBinding(
@@ -61,20 +61,19 @@ public class PlayListPage extends JFXScrollPane {
 
         remove.setOnAction(actionEvent -> {
             InfoPane selectedPane = list.getSelectionModel().getSelectedItem();
-            if(selectedPane.equals(curPlaying))
+            if (selectedPane.equals(curPlaying))
                 curPlaying = null;
             list.getItems().remove(selectedPane);
         });
 
         list.setOnMouseClicked(mouseEvent -> {
-            if(mouseEvent.getButton().toString().equals("SECONDARY")){
+            if (mouseEvent.getButton().toString().equals("SECONDARY")) {
                 if (itemMenu.isShowing()) {
                     itemMenu.hide();
                 } else {
                     itemMenu.show(list.getSelectionModel().getSelectedItem(), mouseEvent.getScreenX(), mouseEvent.getScreenY());
                 }
-            }
-            else if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton().toString().equals("PRIMARY")) {
+            } else if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton().toString().equals("PRIMARY")) {
                 InfoPane selectedPane = list.getSelectionModel().getSelectedItem();
                 main.loadExistedMusic(selectedPane.getMediaInfo());
                 if (curPlaying != null)
@@ -192,7 +191,6 @@ public class PlayListPage extends JFXScrollPane {
                     System.out.println(e.getMessage());
                 }
             } while (!Thread.currentThread().isInterrupted());
-
         });
         timeUpdate.setDaemon(true);
     }
@@ -212,12 +210,17 @@ public class PlayListPage extends JFXScrollPane {
         infoPane.removePlayingIcon();
         inListMediaRecord.put(file.hashCode(), infoPane);
         synchronized (lock) {
-            Platform.runLater(() -> list.getItems().add(0, infoPane));
+            if (!searchHold.isEmpty() && !s[s.length - 1].split("\\.")[0].contains(keyWord)) {
+                searchHold.add(new Pair<>(0, infoPane));
+            } else {
+                Platform.runLater(() -> list.getItems().add(0, infoPane));
+            }
         }
         infoPane.autoInfo(file);
     }
 
     public void search(String keyWord) {
+        this.keyWord = keyWord;
         new Thread(() -> {
             if (keyWord.equals(""))
                 return;
@@ -226,14 +229,12 @@ public class PlayListPage extends JFXScrollPane {
                 for (int i = 0; i < size; i++) {
                     InfoPane infoPane = list.getItems().get(i);
                     if (!infoPane.getMediaInfo().getTitle().contains(keyWord)) {
-                        searchHold.put(i, infoPane);
+                        searchHold.add(new Pair<>(i, infoPane));
                     }
                 }
                 Platform.runLater(() -> title.setText("\"" + keyWord + "\" " + LOC.getString("Result")));
-                for (Integer key : searchHold.keySet()) {
-                    if (searchHold.get(key) == null)
-                        continue;
-                    Platform.runLater(() -> list.getItems().remove(searchHold.get(key)));
+                for (Pair<Integer, InfoPane> pair : searchHold) {
+                    Platform.runLater(() -> list.getItems().remove(pair.getValue()));
                 }
             }
         }).start();
@@ -242,10 +243,8 @@ public class PlayListPage extends JFXScrollPane {
     public synchronized void releaseSearch() {
         synchronized (lock) {
             title.setText(LOC.getString("PlayList"));
-            for (Integer key : searchHold.keySet()) {
-                if (searchHold.get(key) == null)
-                    continue;
-                list.getItems().add(key, searchHold.get(key));
+            for (Pair<Integer, InfoPane> pair : searchHold) {
+                list.getItems().add(pair.getKey(), pair.getValue());
             }
             searchHold.clear();
         }

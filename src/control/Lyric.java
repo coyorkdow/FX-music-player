@@ -97,7 +97,6 @@ public class Lyric {
     }
 
     public final ArrayList<Object> getLinked(Duration duration) {
-        int size = lyricMap.get((int) (duration.toSeconds() + 0.5)).size();
         return linkedMap.get((int) (duration.toSeconds() + 0.5));
     }
 

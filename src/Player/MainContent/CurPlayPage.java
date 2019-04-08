@@ -1,6 +1,7 @@
 package Player.MainContent;
 
 import Player.Main;
+import Player.button.FlatButton;
 import com.jfoenix.controls.JFXListView;
 import control.ColorChooser;
 import control.Lyric;
@@ -13,19 +14,25 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class CurPlayPage extends StackPane {
 
-    private MediaPlayer audioMediaPlayer;
+    private MediaPlayer audioMediaPlayer = null;
     final private BarChart<String, Number> bc;
     final private XYChart.Series<String, Number> series;
     private JFXListView<Label> lyricView;
@@ -34,6 +41,8 @@ public class CurPlayPage extends StackPane {
     private Lyric lyric = null;
 
     private ArrayList<Object> curLabels = null;
+
+    private ResourceBundle LOC = ResourceBundle.getBundle("insidefx/undecorator/resources/localization", Locale.getDefault());
 
     private ChangeListener<Duration> lyricScrollListener = (observableValue, duration, t1) -> {
         if (lyric.contains(audioMediaPlayer.getCurrentTime())) {
@@ -84,15 +93,55 @@ public class CurPlayPage extends StackPane {
 
         this.getChildren().add(bc);
 
+        VBox box = new VBox();
+        FlatButton addLyric = new FlatButton(new ImageView(Main.class.getResource("resources/baseline_add_black_18dp_small.png").toString()));
+        FlatButton hideOrShowLyric = new FlatButton(new ImageView(Main.class.getResource("resources/outline_not_interested_black_18dp_small.png").toString()));
+        hideOrShowLyric.setOnAction(MouseEvent -> {
+            if (lyricView.getOpacity() == 1) {
+                lyricView.setOpacity(0);
+                hideOrShowLyric.setGraphic(new ImageView(Main.class.getResource("resources/outline_fiber_manual_record_black_18dp_small.png").toString()));
+            } else {
+                lyricView.setOpacity(1);
+                hideOrShowLyric.setGraphic(new ImageView(Main.class.getResource("resources/outline_not_interested_black_18dp_small.png").toString()));
+            }
+        });
+        addLyric.prefHeightProperty().bind(addLyric.prefWidthProperty());
+        addLyric.setOnAction(mouseEvent -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("lrc", "*.lrc"),
+                    new FileChooser.ExtensionFilter(LOC.getString("AllFiles"), "*.*")
+            );
+            File file = fileChooser.showOpenDialog(null);
+            if (file != null) {
+                Platform.runLater(() -> setLyric(file));
+            }
+        });
+        HBox hBox = new HBox(addLyric, hideOrShowLyric);
+        hBox.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8);");
+        hBox.setOpacity(0);
+        hBox.setOnMouseEntered(mouseEvent -> {
+            if (audioMediaPlayer != null)
+                hBox.setOpacity(1);
+        });
+        hBox.setOnMouseExited(mouseEvent -> {
+            if (audioMediaPlayer != null)
+                hBox.setOpacity(0);
+        });
         lyricView = new JFXListView<>();
         lyricView.maxWidthProperty().bind(lyricView.minWidthProperty());
-        lyricView.minWidthProperty().bind(Bindings.createDoubleBinding(() -> bc.getWidth() * 0.9, bc.widthProperty()));
+        lyricView.minWidthProperty().bind(Bindings.createDoubleBinding(() -> bc.getWidth() * 0.8, bc.widthProperty()));
         lyricView.maxHeightProperty().bind(lyricView.minHeightProperty());
         lyricView.minHeightProperty().bind(Bindings.createDoubleBinding(() -> bc.getHeight() * 0.5, bc.heightProperty()));
-
         lyricView.addEventFilter(MouseEvent.MOUSE_PRESSED, MouseEvent::consume);
-
-        this.getChildren().add(lyricView);
+        box.getChildren().addAll(hBox, lyricView);
+        box.maxWidthProperty().bind(box.minWidthProperty());
+        box.minWidthProperty().bind(lyricView.widthProperty());
+        box.maxHeightProperty().bind(box.minHeightProperty());
+        box.minHeightProperty().bind(Bindings.createDoubleBinding(() -> bc.getHeight() * 0.7, bc.heightProperty()));
+        box.setStyle("-fx-alignment: center;");
+        this.getChildren().add(box);
 
         getStylesheets().add(Main.class.getResource("resources/CurPlayPage.css").toExternalForm());
         stop();

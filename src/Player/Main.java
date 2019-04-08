@@ -614,13 +614,12 @@ public class Main extends Application {
         }
     }
 
-    private static void configureFileChooser(final FileChooser fileChooser) {
+    private void configureFileChooser(final FileChooser fileChooser) {
 //        fileChooser.setTitle("View Pictures");
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("mp3", "*.mp3"),
-                new FileChooser.ExtensionFilter("All files", "*.*")
-//                new FileChooser.ExtensionFilter("PNG", "*.png")
+                new FileChooser.ExtensionFilter(LOC.getString("AllFiles"), "*.*")
         );
     }
 
